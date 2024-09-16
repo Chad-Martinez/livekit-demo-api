@@ -1,34 +1,47 @@
-import express from 'express';
-import { AccessToken } from 'livekit-server-sdk';
+import express, { json } from 'express';
+import cors from 'cors';
+import { createToken } from './utils/createToken.js';
 
-const createToken = async (userName) => {
-    const roomName = 'livekit-demo';
+export const allowedOrigins = [
+  'http://localhost:5173',
+  'https://livekit-demo-ui.onrender.com',
+];
 
-    const at = new AccessToken(process.env.LIVEKIT_API_KEY, process.env.LIVEKIT_API_SECRET, { identity: userName, ttl: '10m' });
-    at.addGrant({ roomJoin: true, room: roomName })
-    
-    return await at.toJwt();
-}
 const app = express();
 
+app.use(json());
+app.use(
+  cors({
+    origin: (origin = '', callback) => {
+      if (allowedOrigins.indexOf(origin) !== -1 || !origin) {
+        callback(null, true);
+      } else {
+        callback(new HttpErrorResponse(400, 'Not allowed by CORS'));
+      }
+    },
+    credentials: true,
+    methods: ['GET, POST, PUT, PATCH, DELETE, OPTIONS'],
+    allowedHeaders: ['Authorization', 'Content-Type'],
+    optionsSuccessStatus: 200,
+  })
+);
+
 app.get('/', (req, res) => {
-    res.send('Hello World!')
-})
+  res.send('Hello World!');
+});
 
-app.get('/api/tokens/:userName', async (req, res, next) => {
-    try {
-        const { userName } = req.params;
-        // console.log('token generating', userName);
-    
-        const newToken = await createToken(userName);
-    
-        res.status(200).json({newToken})
+app.post('/api/tokens', async (req, res, next) => {
+  try {
+    const { roomName, userName } = req.body;
 
-    } catch (error) {
-        next(error)
-    }
-})
+    const newToken = await createToken(userName, roomName);
+
+    res.status(200).json({ newToken });
+  } catch (error) {
+    next(error);
+  }
+});
 
 app.listen(process.env.PORT, () => {
-    console.log(`Sever running on port ${process.env.PORT}`)
-})
+  console.log(`Sever running on port ${process.env.PORT}`);
+});
