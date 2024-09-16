@@ -1,0 +1,17 @@
+{
+  "name": "livekit-demo-api",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "dev": "nodemon --exec 'node --env-file=.env' ./src/app.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "express": "^4.21.0",
+    "livekit-server-sdk": "^2.6.2"
+  },
+  "type": "module"
+}
