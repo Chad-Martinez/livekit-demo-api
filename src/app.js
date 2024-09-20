@@ -32,9 +32,9 @@ app.get('/', (req, res) => {
 
 app.post('/api/tokens', async (req, res, next) => {
   try {
-    const { roomName, userName } = req.body;
+    const { roomName, username } = req.body;
 
-    const newToken = await createToken(userName, roomName);
+    const newToken = await createToken(username, roomName);
 
     res.status(200).json({ newToken });
   } catch (error) {
