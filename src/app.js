@@ -1,6 +1,13 @@
 import express, { json } from 'express';
 import cors from 'cors';
 import { createToken } from './utils/createToken.js';
+import { RoomServiceClient } from 'livekit-server-sdk';
+
+const roomService = new RoomServiceClient(
+  process.env.LIVEKIT_HOST,
+  process.env.LIVEKIT_API_KEY,
+  process.env.LIVEKIT_API_SECRET
+);
 
 export const allowedOrigins = [
   'http://localhost:5173',
@@ -26,8 +33,22 @@ app.use(
   })
 );
 
-app.get('/', (req, res) => {
-  res.send('Hello World!');
+app.get('/api/rooms/:roomId', async (req, res, next) => {
+  try {
+    const opts = {
+      name: req.params.roomId,
+      emptyTimeout: 10 * 60,
+      maxParticipants: 2,
+    };
+    const rooms = await roomService.listRooms();
+    const roomExists = rooms.find((room) => room.name === req.params.roomId);
+
+    if (!roomExists) await roomService.createRoom(opts);
+
+    res.status(200).json({ message: 'Room Ready' });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post('/api/tokens', async (req, res, next) => {
